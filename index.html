@@ -1,0 +1,722 @@
+[ADHD3.html](https://github.com/user-attachments/files/26452364/ADHD3.html)
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Med Reminder</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #1a1a2e;
+            color: #ffffff;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        h1 {
+            font-size: 1.8rem;
+            margin-bottom: 8px;
+            text-align: center;
+            color: #e0e0ff;
+        }
+
+        .date-display {
+            font-size: 0.95rem;
+            color: #9999bb;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        /* STATUS CARD */
+        .status-card {
+            background: #16213e;
+            border-radius: 20px;
+            padding: 24px;
+            width: 100%;
+            max-width: 380px;
+            margin-bottom: 28px;
+            border: 1px solid #2a2a5a;
+        }
+
+        .status-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #2a2a5a;
+        }
+
+        .status-row:last-child {
+            border-bottom: none;
+        }
+
+        .status-label {
+            font-size: 0.9rem;
+            color: #9999bb;
+        }
+
+        .status-value {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: #e0e0ff;
+        }
+
+        .status-value.taken {
+            color: #4ecca3;
+        }
+
+        .status-value.pending {
+            color: #f6c90e;
+        }
+
+        .status-value.waiting {
+            color: #ff6b6b;
+        }
+
+        /* COUNTDOWN */
+        .countdown-box {
+            background: #0f3460;
+            border-radius: 16px;
+            padding: 18px;
+            width: 100%;
+            max-width: 380px;
+            margin-bottom: 28px;
+            text-align: center;
+            display: none;
+            border: 1px solid #1a5490;
+        }
+
+        .countdown-box.visible {
+            display: block;
+        }
+
+        .countdown-label {
+            font-size: 0.85rem;
+            color: #9999bb;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .countdown-timer {
+            font-size: 2.8rem;
+            font-weight: 700;
+            color: #f6c90e;
+            letter-spacing: 2px;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .countdown-subtext {
+            font-size: 0.8rem;
+            color: #7799aa;
+            margin-top: 6px;
+        }
+
+        /* MAIN BUTTON */
+        .btn-container {
+            width: 100%;
+            max-width: 380px;
+            margin-bottom: 20px;
+        }
+
+        .main-btn {
+            width: 100%;
+            padding: 28px 20px;
+            border-radius: 20px;
+            border: none;
+            font-size: 1.4rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            letter-spacing: 0.5px;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+        }
+
+        .main-btn:active {
+            transform: scale(0.96);
+        }
+
+        .main-btn.step-1 {
+            background: linear-gradient(135deg, #4ecca3, #26a085);
+            color: #0a0a1a;
+        }
+
+        .main-btn.step-2 {
+            background: linear-gradient(135deg, #f6c90e, #d4a800);
+            color: #0a0a1a;
+        }
+
+        .main-btn.done {
+            background: #2a2a4a;
+            color: #6666aa;
+            cursor: default;
+        }
+
+        .main-btn.waiting-btn {
+            background: #2a2a4a;
+            color: #6666aa;
+            cursor: default;
+            font-size: 1rem;
+        }
+
+        /* RESET BUTTON */
+        .reset-btn {
+            background: transparent;
+            border: 1px solid #ff6b6b44;
+            color: #ff6b6b88;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .reset-btn:active {
+            background: #ff6b6b22;
+            color: #ff6b6b;
+        }
+
+        /* NOTIFICATION BANNER */
+        .notification-banner {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            padding: 20px;
+            text-align: center;
+            font-size: 1.1rem;
+            font-weight: 600;
+            transform: translateY(-100%);
+            transition: transform 0.4s ease;
+            z-index: 1000;
+            border-bottom-left-radius: 16px;
+            border-bottom-right-radius: 16px;
+        }
+
+        .notification-banner.show {
+            transform: translateY(0);
+        }
+
+        .notification-banner.dose2 {
+            background: #f6c90e;
+            color: #0a0a1a;
+        }
+
+        .notification-banner.dose3 {
+            background: #4ecca3;
+            color: #0a0a1a;
+        }
+
+        /* HISTORY */
+        .history-section {
+            width: 100%;
+            max-width: 380px;
+            margin-top: 20px;
+        }
+
+        .history-title {
+            font-size: 0.8rem;
+            color: #6666aa;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .history-item {
+            background: #16213e;
+            border-radius: 10px;
+            padding: 10px 14px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.85rem;
+            border: 1px solid #2a2a5a;
+        }
+
+        .history-item .h-label {
+            color: #9999bb;
+        }
+
+        .history-item .h-time {
+            color: #4ecca3;
+            font-weight: 600;
+        }
+
+        /* Reset info */
+        .reset-info {
+            font-size: 0.75rem;
+            color: #555588;
+            text-align: center;
+            margin-top: 16px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>💊 Med Reminder</h1>
+    <div class="date-display" id="dateDisplay"></div>
+
+    <!-- Notification banner (in-app alert) -->
+    <div class="notification-banner" id="notifBanner"></div>
+
+    <!-- Status Card -->
+    <div class="status-card">
+        <div class="status-row">
+            <span class="status-label">Tablet 1</span>
+            <span class="status-value" id="tablet1Status">Not taken</span>
+        </div>
+        <div class="status-row">
+            <span class="status-label">Tablet 2</span>
+            <span class="status-value" id="tablet2Status">Not taken</span>
+        </div>
+        <div class="status-row">
+            <span class="status-label">Tablet 3</span>
+            <span class="status-value" id="tablet3Status">Not taken</span>
+        </div>
+        <div class="status-row">
+            <span class="status-label">Resets at</span>
+            <span class="status-value">Midnight 🔄</span>
+        </div>
+    </div>
+
+    <!-- Countdown Box -->
+    <div class="countdown-box" id="countdownBox">
+        <div class="countdown-label" id="countdownLabel">Next dose in</div>
+        <div class="countdown-timer" id="countdownTimer">--:--:--</div>
+        <div class="countdown-subtext" id="countdownSubtext"></div>
+    </div>
+
+    <!-- Main Button -->
+    <div class="btn-container">
+        <button class="main-btn step-1" id="mainBtn" onclick="handleButtonPress()">
+            💊 Take Tablet 1
+        </button>
+    </div>
+
+    <!-- Manual Reset -->
+    <button class="reset-btn" onclick="confirmReset()">↺ Manual Reset</button>
+
+    <!-- Today's Log -->
+    <div class="history-section" id="historySection" style="display:none">
+        <div class="history-title">Today's Log</div>
+        <div id="historyItems"></div>
+    </div>
+
+    <div class="reset-info">App automatically resets every midnight</div>
+
+    <script>
+        // ─────────────────────────────────────────────
+        //  CONFIGURATION
+        // ─────────────────────────────────────────────
+        const DOSE_GAPS = {
+            1: 5 * 60 * 60 * 1000,  // 5 hours after tablet 1
+            2: 3 * 60 * 60 * 1000,  // 3 hours after tablet 2
+        };
+
+        // ─────────────────────────────────────────────
+        //  STATE
+        // ─────────────────────────────────────────────
+        let state = {
+            step: 1,           // 1 = waiting for tablet 1, 2 = waiting for tablet 2, 3 = waiting for tablet 3, 4 = done
+            tablet1Time: null,
+            tablet2Time: null,
+            tablet3Time: null,
+            nextDoseTime: null,
+            lastResetDate: null,
+        };
+
+        let countdownInterval = null;
+        let midnightTimeout = null;
+        let doseAlarmTimeout = null;
+
+        // ─────────────────────────────────────────────
+        //  INIT
+        // ─────────────────────────────────────────────
+        function init() {
+            loadState();
+            updateDateDisplay();
+            checkMidnightReset();
+            renderUI();
+            scheduleMidnightReset();
+
+            // Request notification permission
+            if ('Notification' in window && Notification.permission === 'default') {
+                Notification.requestPermission();
+            }
+        }
+
+        // ─────────────────────────────────────────────
+        //  STORAGE
+        // ─────────────────────────────────────────────
+        function saveState() {
+            localStorage.setItem('medReminderState', JSON.stringify(state));
+        }
+
+        function loadState() {
+            const saved = localStorage.getItem('medReminderState');
+            if (saved) {
+                state = { ...state, ...JSON.parse(saved) };
+            } else {
+                state.lastResetDate = todayString();
+                saveState();
+            }
+        }
+
+        function todayString() {
+            return new Date().toISOString().split('T')[0]; // "YYYY-MM-DD"
+        }
+
+        // ─────────────────────────────────────────────
+        //  MIDNIGHT RESET
+        // ─────────────────────────────────────────────
+        function checkMidnightReset() {
+            const today = todayString();
+            if (state.lastResetDate !== today) {
+                resetState(false); // silent reset
+            }
+        }
+
+        function scheduleMidnightReset() {
+            if (midnightTimeout) clearTimeout(midnightTimeout);
+
+            const now = new Date();
+            const midnight = new Date(
+                now.getFullYear(),
+                now.getMonth(),
+                now.getDate() + 1, // next day
+                0, 0, 0, 0
+            );
+            const msUntilMidnight = midnight - now;
+
+            midnightTimeout = setTimeout(() => {
+                resetState(true); // show notification
+                scheduleMidnightReset(); // re-schedule for next midnight
+            }, msUntilMidnight);
+        }
+
+        function resetState(notify) {
+            if (countdownInterval) clearInterval(countdownInterval);
+            if (doseAlarmTimeout) clearTimeout(doseAlarmTimeout);
+
+            state = {
+                step: 1,
+                tablet1Time: null,
+                tablet2Time: null,
+                tablet3Time: null,
+                nextDoseTime: null,
+                lastResetDate: todayString(),
+            };
+            saveState();
+            renderUI();
+
+            if (notify) {
+                showBanner('🔄 New day — app has reset!', 'dose3');
+                sendNotification('Med Reminder Reset', 'A new day has started. Ready for your first tablet!');
+            }
+        }
+
+        function confirmReset() {
+            if (confirm('Reset today\'s medication log?')) {
+                resetState(false);
+            }
+        }
+
+        // ─────────────────────────────────────────────
+        //  BUTTON PRESS HANDLER
+        // ─────────────────────────────────────────────
+        function handleButtonPress() {
+            const now = Date.now();
+
+            if (state.step === 1) {
+                // Take tablet 1
+                state.tablet1Time = now;
+                state.nextDoseTime = now + DOSE_GAPS[1];
+                state.step = 2;
+                saveState();
+                scheduleAlarm(state.nextDoseTime, '⏰ Time for Tablet 2!');
+                showBanner('✅ Tablet 1 logged! Reminder set for 5 hours.', 'dose2');
+
+            } else if (state.step === 2) {
+                // Check if enough time has passed (soft warning only)
+                const timeWaited = now - state.tablet1Time;
+                if (timeWaited < DOSE_GAPS[1]) {
+                    const remaining = DOSE_GAPS[1] - timeWaited;
+                    const mins = Math.ceil(remaining / 60000);
+                    if (!confirm(`⚠️ You still have ~${formatMins(remaining)} left to wait. Take tablet 2 anyway?`)) {
+                        return;
+                    }
+                }
+                // Take tablet 2
+                state.tablet2Time = now;
+                state.nextDoseTime = now + DOSE_GAPS[2];
+                state.step = 3;
+                saveState();
+                scheduleAlarm(state.nextDoseTime, '⏰ Time for Tablet 3!');
+                showBanner('✅ Tablet 2 logged! Reminder set for 3 hours.', 'dose2');
+
+            } else if (state.step === 3) {
+                // Check if enough time has passed
+                const timeWaited = now - state.tablet2Time;
+                if (timeWaited < DOSE_GAPS[2]) {
+                    const remaining = DOSE_GAPS[2] - timeWaited;
+                    if (!confirm(`⚠️ You still have ~${formatMins(remaining)} left to wait. Take tablet 3 anyway?`)) {
+                        return;
+                    }
+                }
+                // Take tablet 3
+                state.tablet3Time = now;
+                state.nextDoseTime = null;
+                state.step = 4;
+                saveState();
+                showBanner('✅ All tablets taken for today! 🎉', 'dose3');
+            }
+
+            renderUI();
+        }
+
+        // ─────────────────────────────────────────────
+        //  ALARM / NOTIFICATION
+        // ─────────────────────────────────────────────
+        function scheduleAlarm(targetTime, message) {
+            if (doseAlarmTimeout) clearTimeout(doseAlarmTimeout);
+
+            const delay = targetTime - Date.now();
+            if (delay <= 0) return;
+
+            doseAlarmTimeout = setTimeout(() => {
+                sendNotification('💊 Medication Reminder', message);
+                showBanner(message, 'dose2');
+                renderUI(); // refresh button state
+            }, delay);
+        }
+
+        function sendNotification(title, body) {
+            if ('Notification' in window && Notification.permission === 'granted') {
+                new Notification(title, {
+                    body: body,
+                    icon: '💊',
+                    badge: '💊',
+                    requireInteraction: true,
+                });
+            }
+        }
+
+        // ─────────────────────────────────────────────
+        //  COUNTDOWN TIMER
+        // ─────────────────────────────────────────────
+        function startCountdown() {
+            if (countdownInterval) clearInterval(countdownInterval);
+
+            countdownInterval = setInterval(() => {
+                updateCountdown();
+            }, 1000);
+
+            updateCountdown(); // immediate first tick
+        }
+
+        function updateCountdown() {
+            if (!state.nextDoseTime) {
+                if (countdownInterval) clearInterval(countdownInterval);
+                return;
+            }
+
+            const remaining = state.nextDoseTime - Date.now();
+
+            if (remaining <= 0) {
+                document.getElementById('countdownTimer').textContent = '00:00:00';
+                document.getElementById('countdownSubtext').textContent = '🔔 Time to take your tablet!';
+                clearInterval(countdownInterval);
+                return;
+            }
+
+            const h = Math.floor(remaining / 3600000);
+            const m = Math.floor((remaining % 3600000) / 60000);
+            const s = Math.floor((remaining % 60000) / 1000);
+
+            document.getElementById('countdownTimer').textContent =
+                `${pad(h)}:${pad(m)}:${pad(s)}`;
+
+            const dueTime = new Date(state.nextDoseTime);
+            document.getElementById('countdownSubtext').textContent =
+                `Due at ${formatTime(dueTime)}`;
+        }
+
+        // ─────────────────────────────────────────────
+        //  RENDER UI
+        // ─────────────────────────────────────────────
+        function renderUI() {
+            updateDateDisplay();
+
+            const t1 = document.getElementById('tablet1Status');
+            const t2 = document.getElementById('tablet2Status');
+            const t3 = document.getElementById('tablet3Status');
+            const btn = document.getElementById('mainBtn');
+            const countdownBox = document.getElementById('countdownBox');
+
+            // Tablet status
+            if (state.tablet1Time) {
+                t1.textContent = formatTime(new Date(state.tablet1Time));
+                t1.className = 'status-value taken';
+            } else {
+                t1.textContent = 'Not taken';
+                t1.className = 'status-value';
+            }
+
+            if (state.tablet2Time) {
+                t2.textContent = formatTime(new Date(state.tablet2Time));
+                t2.className = 'status-value taken';
+            } else if (state.step === 2) {
+                t2.textContent = 'Waiting...';
+                t2.className = 'status-value pending';
+            } else {
+                t2.textContent = 'Not taken';
+                t2.className = 'status-value';
+            }
+
+            if (state.tablet3Time) {
+                t3.textContent = formatTime(new Date(state.tablet3Time));
+                t3.className = 'status-value taken';
+            } else if (state.step === 3) {
+                t3.textContent = 'Waiting...';
+                t3.className = 'status-value pending';
+            } else {
+                t3.textContent = 'Not taken';
+                t3.className = 'status-value';
+            }
+
+            // Button states
+            const now = Date.now();
+
+            if (state.step === 1) {
+                btn.textContent = '💊 Take Tablet 1';
+                btn.className = 'main-btn step-1';
+                btn.disabled = false;
+                countdownBox.classList.remove('visible');
+
+            } else if (state.step === 2) {
+                const ready = now >= state.nextDoseTime;
+                if (ready) {
+                    btn.textContent = '⏰ Take Tablet 2 Now!';
+                    btn.className = 'main-btn step-2';
+                    btn.disabled = false;
+                } else {
+                    btn.textContent = '⏳ Waiting for Tablet 2...';
+                    btn.className = 'main-btn waiting-btn';
+                    btn.disabled = false; // still tappable (shows warning)
+                }
+                document.getElementById('countdownLabel').textContent = 'Tablet 2 in';
+                countdownBox.classList.add('visible');
+                startCountdown();
+
+            } else if (state.step === 3) {
+                const ready = now >= state.nextDoseTime;
+                if (ready) {
+                    btn.textContent = '⏰ Take Tablet 3 Now!';
+                    btn.className = 'main-btn step-2';
+                    btn.disabled = false;
+                } else {
+                    btn.textContent = '⏳ Waiting for Tablet 3...';
+                    btn.className = 'main-btn waiting-btn';
+                    btn.disabled = false;
+                }
+                document.getElementById('countdownLabel').textContent = 'Tablet 3 in';
+                countdownBox.classList.add('visible');
+                startCountdown();
+
+            } else if (state.step === 4) {
+                btn.textContent = '✅ All Done for Today!';
+                btn.className = 'main-btn done';
+                btn.disabled = true;
+                countdownBox.classList.remove('visible');
+                if (countdownInterval) clearInterval(countdownInterval);
+            }
+
+            renderHistory();
+
+            // Re-schedule any pending alarm that might have been lost on page reload
+            if (state.nextDoseTime && state.step < 4) {
+                const alarmMessage = state.step === 2 ? '⏰ Time for Tablet 2!' : '⏰ Time for Tablet 3!';
+                scheduleAlarm(state.nextDoseTime, alarmMessage);
+            }
+        }
+
+        function renderHistory() {
+            const section = document.getElementById('historySection');
+            const items = document.getElementById('historyItems');
+
+            const logs = [];
+            if (state.tablet1Time) logs.push({ label: 'Tablet 1 taken', time: state.tablet1Time });
+            if (state.tablet2Time) logs.push({ label: 'Tablet 2 taken', time: state.tablet2Time });
+            if (state.tablet3Time) logs.push({ label: 'Tablet 3 taken', time: state.tablet3Time });
+
+            if (logs.length === 0) {
+                section.style.display = 'none';
+                return;
+            }
+
+            section.style.display = 'block';
+            items.innerHTML = logs.map(log => `
+                <div class="history-item">
+                    <span class="h-label">${log.label}</span>
+                    <span class="h-time">${formatTime(new Date(log.time))}</span>
+                </div>
+            `).join('');
+        }
+
+        // ─────────────────────────────────────────────
+        //  BANNER NOTIFICATION (in-app)
+        // ─────────────────────────────────────────────
+        function showBanner(message, type) {
+            const banner = document.getElementById('notifBanner');
+            banner.textContent = message;
+            banner.className = `notification-banner ${type} show`;
+
+            setTimeout(() => {
+                banner.classList.remove('show');
+            }, 4000);
+        }
+
+        // ─────────────────────────────────────────────
+        //  HELPERS
+        // ─────────────────────────────────────────────
+        function pad(n) {
+            return String(n).padStart(2, '0');
+        }
+
+        function formatTime(date) {
+            return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        }
+
+        function formatMins(ms) {
+            const h = Math.floor(ms / 3600000);
+            const m = Math.floor((ms % 3600000) / 60000);
+            if (h > 0) return `${h}h ${m}m`;
+            return `${m}m`;
+        }
+
+        function updateDateDisplay() {
+            document.getElementById('dateDisplay').textContent =
+                new Date().toLocaleDateString([], { weekday: 'long', day: 'numeric', month: 'long' });
+        }
+
+        // ─────────────────────────────────────────────
+        //  START
+        // ─────────────────────────────────────────────
+        init();
+    </script>
+</body>
+</html>
